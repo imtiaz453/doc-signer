@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "seed": "node prisma/seed.mjs"
+    "seed": "node prisma/seed.mjs",
+    "generate": "prisma generate"
         
   },
   "dependencies": {

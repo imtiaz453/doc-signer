@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("SALESMAN") // ADMIN or SALESMAN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stamps    Stamp[]
+  stampLogs StampLog[]
+}
+
+model Stamp {
+  id           String   @id @default(cuid())
+  name         String
+  imageUrl     String
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  stampLogs StampLog[]
+}
+
+model StampLog {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  stampId      String
+  stamp        Stamp    @relation(fields: [stampId], references: [id])
+  documentName String
+  pageNumber   Int      @default(1)
+  createdAt    DateTime @default(now())
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}

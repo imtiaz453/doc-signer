@@ -226,15 +226,52 @@ html, body {
   border-bottom-color: #1a73e8;
 }
 
-.sidebar-tab:hover {
-  background: #f8f9fa;
-}
+  .sidebar-tab:hover {
+    background: #f8f9fa;
+  }
 
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
-}
+  .sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .sidebar-actions {
+    padding: 12px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 8px;
+    background: #fff;
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+  }
+
+  .sidebar-btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 12px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar-actions {
+      padding: 8px;
+      gap: 6px;
+      position: sticky;
+      bottom: 0;
+      margin-top: auto;
+    }
+    .sidebar-btn {
+      padding: 6px 8px;
+      font-size: 11px;
+      min-height: 32px;
+    }
+  }
 
 .presets-grid {
   display: flex;
@@ -341,7 +378,7 @@ html, body {
   position: absolute;
   cursor: move;
   user-select: none;
-  touch-action: none;
+  touch-action: pan-x pan-y;
 }
 
 .placed-item img {
@@ -624,6 +661,7 @@ html, body {
     transform: translateX(-100%);
     width: 260px;
     transition: transform 0.25s ease;
+    padding-bottom: 60px;
   }
   .sidebar.open { transform: translateX(0); }
 
@@ -651,4 +689,60 @@ html, body {
 
   .main-area { padding: 8px; overflow: auto; }
   .pdf-container { overflow: auto; }
+
+  .sidebar-content {
+    padding: 8px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .preset-item {
+    min-height: 60px;
+  }
+
+  .preset-item img {
+    max-height: 80px;
+  }
+
+  .sidebar-tabs {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 5;
+  }
+
+  .sidebar-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px;
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    z-index: 10;
+  }
+
+  .sidebar-btn {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .placed-item {
+    touch-action: manipulation;
+  }
+
+  .item-delete {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+    top: -8px;
+    right: -8px;
+  }
+
+  .resize-handle {
+    width: 12px;
+    height: 12px;
+    bottom: -4px;
+    right: -4px;
+  }
 }

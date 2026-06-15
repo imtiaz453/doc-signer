@@ -208,26 +208,45 @@ export default function DocSigner() {
     }
   }, [pageDims, pageNumber, pdfFile]);
 
+  useEffect(() => {
+    const preventZoom = (e) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('touchstart', preventZoom, { passive: false });
+    return () => {
+      document.removeEventListener('touchstart', preventZoom);
+    };
+  }, []);
+
+  const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;
+  const getClientY = (e) => e.touches ? e.touches[0].clientY : e.clientY;
+
   const handleMouseDown = useCallback((e, id) => {
     e.stopPropagation();
     setActiveId(id);
     const item = placed.find(i => i.id === id);
     if (!item) return;
-    dragRef.current = { id, sx: item.x, sy: item.y, mx: e.clientX, my: e.clientY };
+    dragRef.current = { id, sx: item.x, sy: item.y, mx: getClientX(e), my: getClientY(e) };
     const onMove = (ev) => {
       if (!dragRef.current) return;
       const { id, sx, sy, mx, my } = dragRef.current;
       setPlaced(prev => prev.map(i =>
-        i.id === id ? { ...i, x: sx + ev.clientX - mx, y: sy + ev.clientY - my } : i
+        i.id === id ? { ...i, x: sx + getClientX(ev) - mx, y: sy + getClientY(ev) - my } : i
       ));
     };
     const onUp = () => {
       dragRef.current = null;
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
     };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onUp);
   }, [placed]);
 
   const handleResizeDown = useCallback((e, id) => {
@@ -235,11 +254,11 @@ export default function DocSigner() {
     e.preventDefault();
     const item = placed.find(i => i.id === id);
     if (!item) return;
-    resizeRef.current = { id, sw: item.w, sh: item.h, mx: e.clientX, my: e.clientY };
+    resizeRef.current = { id, sw: item.w, sh: item.h, mx: getClientX(e), my: getClientY(e) };
     const onMove = (ev) => {
       if (!resizeRef.current) return;
       const { id, sw, sh, mx, my } = resizeRef.current;
-      const dw = ev.clientX - mx, dh = ev.clientY - my;
+      const dw = getClientX(ev) - mx, dh = getClientY(ev) - my;
       setPlaced(prev => prev.map(i =>
         i.id === id ? { ...i, w: Math.max(30, sw + dw), h: Math.max(30, sh + dh) } : i
       ));
@@ -248,9 +267,13 @@ export default function DocSigner() {
       resizeRef.current = null;
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
     };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onUp);
   }, [placed]);
 
   const deleteItem = useCallback((id) => {
@@ -362,13 +385,10 @@ export default function DocSigner() {
             </span>
           )}
           {isAdmin && <a href="/admin" className="btn-link">⚙️ Admin</a>}
-          <button className="btn-secondary" disabled={!pdfFile || placed.length === 0} onClick={exportPdf}>💾 Save</button>
-          <button className="btn-primary" disabled={!pdfFile || placed.length === 0} onClick={sharePdf}>📤 Share</button>
           <button className="btn-secondary" onClick={() => signOut()}>🚪 Logout</button>
         </div>
-      </div>
 
-      <div className="body-layout">
+        <div className="body-layout">
         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-tabs">
             {settings.showSignatures !== 'false' && (
@@ -382,27 +402,34 @@ export default function DocSigner() {
               {displayPresets.length > 0 && tab === 'stamp' && <span className="tab-count">{displayPresets.length}</span>}
             </button>
           </div>
-          <div className="sidebar-content">
-            <div className="presets-grid">
-              {displayPresets.map(p => (
-                <div key={p.id} className="preset-item" onClick={() => addItem(p)}>
-                  <img src={p.url} alt={p.name} />
-                  {(!p.db || isAdmin) && (
-                    <button className="preset-delete" onClick={(e) => { e.stopPropagation(); deletePreset(p.id, !!p.db); }}>×</button>
-                  )}
-                </div>
-              ))}
-              {(tab !== 'stamp' || isAdmin) && (
-                <label className={`preset-upload-area ${uploading ? 'uploading' : ''}`}>
-                  {uploading ? '⏳ Uploading...' : `+ Add ${tab === 'sign' ? 'Signature' : 'Stamp'} Image`}
-                  <input type="file" accept="image/png,image/jpeg,image/gif" hidden
-                    onChange={(e) => handlePresetUpload(e, tab)} multiple disabled={uploading} />
-                </label>
-              )}
-            </div>
-          </div>
-        </div>
-        {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+       <div className="sidebar-content">
+         <div className="presets-grid">
+           {displayPresets.map(p => (
+             <div key={p.id} className="preset-item" onClick={() => addItem(p)}>
+               <img src={p.url} alt={p.name} />
+               {(!p.db || isAdmin) && (
+                 <button className="preset-delete" onClick={(e) => { e.stopPropagation(); deletePreset(p.id, !!p.db); }}>×</button>
+               )}
+             </div>
+           ))}
+           {(tab !== 'stamp' || isAdmin) && (
+             <label className={`preset-upload-area ${uploading ? 'uploading' : ''}`}>
+               {uploading ? '⏳ Uploading...' : `+ Add ${tab === 'sign' ? 'Signature' : 'Stamp'} Image`}
+               <input type="file" accept="image/png,image/jpeg,image/gif" hidden
+                 onChange={(e) => handlePresetUpload(e, tab)} multiple disabled={uploading} />
+             </label>
+           )}
+         </div>
+       </div>
+
+       {(pdfFile && placed.length > 0) && (
+         <div className="sidebar-actions">
+           <button className="btn-secondary sidebar-btn" onClick={exportPdf} disabled={!pdfFile || placed.length === 0}>💾 Save</button>
+           <button className="btn-primary sidebar-btn" onClick={sharePdf} disabled={!pdfFile || placed.length === 0}>📤 Share</button>
+         </div>
+       )}
+     </div>
+     {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
 
         <div className="main-area" ref={mainRef}>
           {!pdfFile ? (

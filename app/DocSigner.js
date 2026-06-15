@@ -60,34 +60,38 @@ export default function DocSigner() {
   const [settings, setSettings] = useState({ showSignatures: true });
   const mainRef = useRef(null);
 
+  const containerRef = useRef(null);
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
 
   useEffect(() => { setLocalPresets(loadLocalPresets()); }, []);
 
   useEffect(() => {
-    fetch('/api/stamps').then(r => r.json()).then(data => {
-      if (Array.isArray(data)) setDbStamps(data);
-    }).catch(() => {});
+    fetch('/api/stamps')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setDbStamps(data); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    fetch('/api/settings').then(r => r.json()).then(data => {
-      if (data) setSettings(data);
-    }).catch(() => {});
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(data => { if (data) setSettings(data); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (settings.showSignatures === 'false' && tab === 'sign') setTab('stamp');
+    if (settings.showSignatures === 'false' && tab === 'sign') {
+      setTab('stamp');
+    }
   }, [settings.showSignatures, tab]);
 
-  // Resize observer for PDF width
   useEffect(() => {
     const el = mainRef.current;
     if (!el) return;
     const ro = new ResizeObserver(entries => {
-      const w = entries[0]?.contentRect?.width || 800;
-      setRenderWidth(Math.min(800, Math.floor(w)));
+      const w = entries[0]?.contentBoxSize?.[0]?.inlineSize || entries[0]?.contentRect?.width;
+      if (w) setRenderWidth(Math.min(800, Math.floor(w)));
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -131,35 +135,240 @@ export default function DocSigner() {
     setPageNumber(1);
   }, []);
 
-  // ... (rest of the functions remain the same: handlePresetUpload, deletePreset, addItem, etc.)
+  const handlePresetUpload = useCallback(async (e, type) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    e.target.value = '';
+    try {
+      const results = await uploadFiles('imageUploader', { files });
+      if (type === 'stamp' && isAdmin) {
+        for (const r of results) {
+          await fetch('/api/stamps', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: r.name, imageUrl: r.ufsUrl }),
+          });
+        }
+        const res = await fetch('/api/stamps');
+        const data = await res.json();
+        if (Array.isArray(data)) setDbStamps(data);
+      } else {
+        const newPresets = results.map(r => ({
+          id: uid(),
+          type,
+          name: r.name,
+          url: r.ufsUrl,
+        }));
+        persistLocalPresets([...localPresets, ...newPresets]);
+      }
+    } catch (err) {
+      alert('Upload failed: ' + err.message);
+    }
+    setUploading(false);
+  }, [localPresets, persistLocalPresets, isAdmin]);
 
-  const handleMouseDown = useCallback((e, id) => { /* same as before */ }, [placed]);
-  const handleResizeDown = useCallback((e, id) => { /* same as before */ }, [placed]);
+  const deletePreset = useCallback(async (id, db) => {
+    setPlaced(prev => prev.filter(i => i.presetId !== id));
+    if (db) {
+      if (!isAdmin) return;
+      await fetch(`/api/stamps/${id}`, { method: 'DELETE' }).catch(() => {});
+      const res = await fetch('/api/stamps');
+      const data = await res.json();
+      if (Array.isArray(data)) setDbStamps(data);
+    } else {
+      persistLocalPresets(localPresets.filter(p => p.id !== id));
+    }
+  }, [localPresets, persistLocalPresets, isAdmin]);
+
+  const addItem = useCallback((preset) => {
+    if (!pageDims.w) return;
+    const w = preset.type === 'stamp' ? 140 : 180;
+    const h = preset.type === 'stamp' ? 140 : 50;
+    const item = {
+      id: uid(),
+      presetId: preset.id,
+      url: preset.url,
+      x: (pageDims.w - w) / 2,
+      y: (pageDims.h - h) / 2,
+      w, h, page: pageNumber,
+      stampId: preset.db ? preset.id : null,
+    };
+    setPlaced(prev => [...prev, item]);
+    if (preset.db && pdfFile) {
+      fetch('/api/stamp-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          stampId: preset.id,
+          documentName: pdfFile.name,
+          pageNumber,
+        }),
+      }).catch(() => {});
+    }
+  }, [pageDims, pageNumber, pdfFile]);
+
+  useEffect(() => {
+    const preventZoom = (e) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('touchstart', preventZoom, { passive: false });
+    return () => {
+      document.removeEventListener('touchstart', preventZoom);
+    };
+  }, []);
+
+  const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;
+  const getClientY = (e) => e.touches ? e.touches[0].clientY : e.clientY;
+
+  const handleMouseDown = useCallback((e, id) => {
+    e.stopPropagation();
+    setActiveId(id);
+    const item = placed.find(i => i.id === id);
+    if (!item) return;
+    dragRef.current = { id, sx: item.x, sy: item.y, mx: getClientX(e), my: getClientY(e) };
+    const onMove = (ev) => {
+      if (!dragRef.current) return;
+      const { id, sx, sy, mx, my } = dragRef.current;
+      setPlaced(prev => prev.map(i =>
+        i.id === id ? { ...i, x: sx + getClientX(ev) - mx, y: sy + getClientY(ev) - my } : i
+      ));
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onUp);
+  }, [placed]);
+
+  const handleResizeDown = useCallback((e, id) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const item = placed.find(i => i.id === id);
+    if (!item) return;
+    resizeRef.current = { id, sw: item.w, sh: item.h, mx: getClientX(e), my: getClientY(e) };
+    const onMove = (ev) => {
+      if (!resizeRef.current) return;
+      const { id, sw, sh, mx, my } = resizeRef.current;
+      const dw = getClientX(ev) - mx, dh = getClientY(ev) - my;
+      setPlaced(prev => prev.map(i =>
+        i.id === id ? { ...i, w: Math.max(30, sw + dw), h: Math.max(30, sh + dh) } : i
+      ));
+    };
+    const onUp = () => {
+      resizeRef.current = null;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove);
+    document.addEventListener('touchend', onUp);
+  }, [placed]);
+
   const deleteItem = useCallback((id) => {
     setPlaced(prev => prev.filter(i => i.id !== id));
     setActiveId(null);
   }, []);
 
   const renderEditControls = useCallback((id) => {
-    if (!activeId || activeId !== id) return null;
-    return (
-      <>
-        <button className="item-delete" onClick={() => deleteItem(id)}>×</button>
-        <div className="resize-handle" onMouseDown={(e) => handleResizeDown(e, id)} />
-      </>
-    );
+    if (!activeId || activeId !== id) return [];
+    return [
+      <button
+        key="delete"
+        className="item-delete"
+        onClick={() => deleteItem(id)}
+      >
+        ×
+      </button>,
+      <div
+        key="resize"
+        className="resize-handle"
+        onMouseDown={(e) => handleResizeDown(e, id)}
+      />
+    ];
   }, [activeId, deleteItem, handleResizeDown]);
 
-  const getSignedPdf = useCallback(async () => { /* same as before */ }, [pdfBuffer, placed, pageDims]);
+  const getSignedPdf = useCallback(async () => {
+    if (!pdfBuffer) return null;
+    const pdfDoc = await PDFDocument.load(pdfBuffer);
+    const pages = pdfDoc.getPages();
+    for (const item of placed) {
+      const pg = pages[item.page - 1];
+      if (!pg) continue;
+      const { width: pw, height: ph } = pg.getSize();
+      const sx = pw / pageDims.w, sy = ph / pageDims.h;
+      let bytes, type;
+      if (item.url.startsWith('data:')) {
+        bytes = urlToBytes(item.url);
+        type = item.url.includes('image/png') ? 'png' : 'jpg';
+      } else {
+        const result = await fetchAndDetect(item.url);
+        bytes = result.bytes;
+        type = result.type;
+      }
+      const img = type === 'png' ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
+      pg.drawImage(img, {
+        x: item.x * sx, y: ph - item.y * sy - item.h * sy,
+        width: item.w * sx, height: item.h * sy,
+      });
+    }
+    return await pdfDoc.save();
+  }, [pdfBuffer, placed, pageDims]);
 
-  const exportPdf = useCallback(async () => { /* same */ }, [getSignedPdf, pdfFile]);
-  const sharePdf = useCallback(async () => { /* same */ }, [getSignedPdf, pdfFile]);
+  const exportPdf = useCallback(async () => {
+    setLoading(true);
+    try {
+      const out = await getSignedPdf();
+      if (!out) return;
+      const blob = new Blob([out], { type: 'application/pdf' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = pdfFile?.name?.replace('.pdf', '-signed.pdf') || 'signed-document.pdf';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) { alert('Export failed: ' + err.message); }
+    setLoading(false);
+  }, [getSignedPdf, pdfFile]);
 
-  // Keyboard delete
+  const sharePdf = useCallback(async () => {
+    setLoading(true);
+    try {
+      const out = await getSignedPdf();
+      if (!out) return;
+      const blob = new Blob([out], { type: 'application/pdf' });
+      if (navigator.canShare?.({
+        files: [new File([blob], 'signed.pdf', { type: 'application/pdf' })],
+      })) {
+        await navigator.share({
+          files: [new File([blob], 'signed.pdf', { type: 'application/pdf' })],
+          title: 'Signed Document',
+        });
+      } else {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = pdfFile?.name?.replace('.pdf', '-signed.pdf') || 'signed-document.pdf';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    } catch (err) { if (err.name !== 'AbortError') alert('Share failed: ' + err.message); }
+    setLoading(false);
+  }, [getSignedPdf, pdfFile]);
+
   useEffect(() => {
     const handleKey = (e) => {
-      if ((e.key === 'Delete' || e.key === 'Backspace') && activeId && 
-          !e.target.closest('input,textarea')) deleteItem(activeId);
+      if ((e.key === 'Delete' || e.key === 'Backspace') && activeId && !e.target.closest('input,textarea'))
+        deleteItem(activeId);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
@@ -170,7 +379,6 @@ export default function DocSigner() {
       {loading && <div className="loading-overlay">Processing PDF...</div>}
 
       <div className="topbar">
-        {/* topbar content same as before */}
         <div className="topbar-left">
           <button className="hamburger" onClick={() => setSidebarOpen(o => !o)}>
             <span /><span /><span />
@@ -190,7 +398,7 @@ export default function DocSigner() {
 
         <div className="topbar-right">
           {session && (
-            <span style={{ fontSize: 12, color: '#666' }}>
+            <span style={{ fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>
               👤 {session.user.name} ({isAdmin ? 'Admin' : 'Salesman'})
             </span>
           )}
@@ -204,11 +412,13 @@ export default function DocSigner() {
           <div className="sidebar-tabs">
             {settings.showSignatures !== 'false' && (
               <button className={`sidebar-tab ${tab === 'sign' ? 'active' : ''}`} onClick={() => setTab('sign')}>
-                Signatures {sigPresets.length > 0 && <span className="tab-count">{sigPresets.length}</span>}
+                Signatures
+                {sigPresets.length > 0 && <span className="tab-count">{sigPresets.length}</span>}
               </button>
             )}
             <button className={`sidebar-tab ${tab === 'stamp' ? 'active' : ''}`} onClick={() => setTab('stamp')}>
-              Stamps {displayPresets.length > 0 && <span className="tab-count">{displayPresets.length}</span>}
+              Stamps
+              {displayPresets.length > 0 && tab === 'stamp' && <span className="tab-count">{displayPresets.length}</span>}
             </button>
           </div>
 
@@ -232,28 +442,10 @@ export default function DocSigner() {
             </div>
           </div>
 
-          {/* Always show action buttons when PDF is loaded */}
-          {pdfFile && (
+          {(pdfFile && placed.length > 0) && (
             <div className="sidebar-actions">
-              <button 
-                className="btn-secondary sidebar-btn" 
-                onClick={exportPdf}
-                disabled={placed.length === 0}
-              >
-                💾 Save Signed PDF
-              </button>
-              <button 
-                className="btn-primary sidebar-btn" 
-                onClick={sharePdf}
-                disabled={placed.length === 0}
-              >
-                📤 Share
-              </button>
-              {placed.length === 0 && (
-                <p style={{ fontSize: '11px', color: '#888', textAlign: 'center', marginTop: 8 }}>
-                  Place at least one stamp or signature to enable Save/Share
-                </p>
-              )}
+              <button className="btn-secondary sidebar-btn" onClick={exportPdf} disabled={!pdfFile || placed.length === 0}>💾 Save</button>
+              <button className="btn-primary sidebar-btn" onClick={sharePdf} disabled={!pdfFile || placed.length === 0}>📤 Share</button>
             </div>
           )}
         </div>
@@ -264,12 +456,13 @@ export default function DocSigner() {
           {!pdfFile ? (
             <div className="empty-state">
               <h2>Upload a PDF to get started</h2>
-              <p>Upload a PDF document, then click on a signature or stamp from the sidebar to place it.</p>
+              <p>Upload a PDF document, then click on a signature or stamp from the sidebar to place it on the page.</p>
             </div>
           ) : (
-            <div className="pdf-container">
+            <div className="pdf-container" ref={containerRef}>
               <Document file={pdfFile} onLoadSuccess={onDocLoad}>
                 <Page
+                  key={`page_${pageNumber}`}
                   pageNumber={pageNumber}
                   width={renderWidth}
                   onRenderSuccess={onPageRender}
@@ -286,7 +479,11 @@ export default function DocSigner() {
                   onMouseDown={(e) => handleMouseDown(e, item.id)}
                 >
                   <img src={item.url} alt="" draggable={false} />
-                  {renderEditControls(item.id)}
+                  {(() => {
+                    const controls = renderEditControls(item.id);
+                    if (!controls.length) return null;
+                    return <div className="edit-controls">{controls}</div>;
+                  })()}
                 </div>
               ))}
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { PDFDocument } from 'pdf-lib';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -281,6 +281,24 @@ export default function DocSigner() {
     setActiveId(null);
   }, []);
 
+  const renderEditControls = useCallback((id) => {
+    if (!activeId || activeId !== id) return [];
+    return [
+      <button
+        key="delete"
+        className="item-delete"
+        onClick={() => deleteItem(id)}
+      >
+        ×
+      </button>,
+      <div
+        key="resize"
+        className="resize-handle"
+        onMouseDown={(e) => handleResizeDown(e, id)}
+      />
+    ];
+  }, [activeId, deleteItem, handleResizeDown]);
+
   const getSignedPdf = useCallback(async () => {
     if (!pdfBuffer) return null;
     const pdfDoc = await PDFDocument.load(pdfBuffer);
@@ -387,8 +405,9 @@ export default function DocSigner() {
           {isAdmin && <a href="/admin" className="btn-link">⚙️ Admin</a>}
           <button className="btn-secondary" onClick={() => signOut()}>🚪 Logout</button>
         </div>
+      </div>
 
-        <div className="body-layout">
+      <div className="body-layout">
         <div className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
           <div className="sidebar-tabs">
             {settings.showSignatures !== 'false' && (
@@ -402,34 +421,36 @@ export default function DocSigner() {
               {displayPresets.length > 0 && tab === 'stamp' && <span className="tab-count">{displayPresets.length}</span>}
             </button>
           </div>
-       <div className="sidebar-content">
-         <div className="presets-grid">
-           {displayPresets.map(p => (
-             <div key={p.id} className="preset-item" onClick={() => addItem(p)}>
-               <img src={p.url} alt={p.name} />
-               {(!p.db || isAdmin) && (
-                 <button className="preset-delete" onClick={(e) => { e.stopPropagation(); deletePreset(p.id, !!p.db); }}>×</button>
-               )}
-             </div>
-           ))}
-           {(tab !== 'stamp' || isAdmin) && (
-             <label className={`preset-upload-area ${uploading ? 'uploading' : ''}`}>
-               {uploading ? '⏳ Uploading...' : `+ Add ${tab === 'sign' ? 'Signature' : 'Stamp'} Image`}
-               <input type="file" accept="image/png,image/jpeg,image/gif" hidden
-                 onChange={(e) => handlePresetUpload(e, tab)} multiple disabled={uploading} />
-             </label>
-           )}
-         </div>
-       </div>
 
-       {(pdfFile && placed.length > 0) && (
-         <div className="sidebar-actions">
-           <button className="btn-secondary sidebar-btn" onClick={exportPdf} disabled={!pdfFile || placed.length === 0}>💾 Save</button>
-           <button className="btn-primary sidebar-btn" onClick={sharePdf} disabled={!pdfFile || placed.length === 0}>📤 Share</button>
-         </div>
-       )}
-     </div>
-     {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+          <div className="sidebar-content">
+            <div className="presets-grid">
+              {displayPresets.map(p => (
+                <div key={p.id} className="preset-item" onClick={() => addItem(p)}>
+                  <img src={p.url} alt={p.name} />
+                  {(!p.db || isAdmin) && (
+                    <button className="preset-delete" onClick={(e) => { e.stopPropagation(); deletePreset(p.id, !!p.db); }}>×</button>
+                  )}
+                </div>
+              ))}
+              {(tab !== 'stamp' || isAdmin) && (
+                <label className={`preset-upload-area ${uploading ? 'uploading' : ''}`}>
+                  {uploading ? '⏳ Uploading...' : `+ Add ${tab === 'sign' ? 'Signature' : 'Stamp'} Image`}
+                  <input type="file" accept="image/png,image/jpeg,image/gif" hidden
+                    onChange={(e) => handlePresetUpload(e, tab)} multiple disabled={uploading} />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {(pdfFile && placed.length > 0) && (
+            <div className="sidebar-actions">
+              <button className="btn-secondary sidebar-btn" onClick={exportPdf} disabled={!pdfFile || placed.length === 0}>💾 Save</button>
+              <button className="btn-primary sidebar-btn" onClick={sharePdf} disabled={!pdfFile || placed.length === 0}>📤 Share</button>
+            </div>
+          )}
+        </div>
+
+        {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
 
         <div className="main-area" ref={mainRef}>
           {!pdfFile ? (
@@ -449,6 +470,7 @@ export default function DocSigner() {
                   renderAnnotationLayer={false}
                 />
               </Document>
+
               {pageItems.map(item => (
                 <div
                   key={item.id}
@@ -456,19 +478,18 @@ export default function DocSigner() {
                   style={{ left: item.x, top: item.y, width: item.w, height: item.h }}
                   onMouseDown={(e) => handleMouseDown(e, item.id)}
                 >
-                   <img src={item.url} alt="" draggable={false} />
-                   {activeId === item.id && (
-                     <>
-                       <button className="item-delete" onClick={() => deleteItem(item.id)}>×</button>
-                       <div className="resize-handle" onMouseDown={(e) => handleResizeDown(e, item.id)} />
-                     </>
-                   )}
-                 </div>
-               )}
-             </div>
-           )}
-         </div>
-       </div>
-     </div>
-   );
- }
+                  <img src={item.url} alt="" draggable={false} />
+                  {(() => {
+                    const controls = renderEditControls(item.id);
+                    if (!controls.length) return null;
+                    return <div className="edit-controls">{controls}</div>;
+                  })()}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

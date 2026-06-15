@@ -456,19 +456,19 @@ export default function DocSigner() {
                   style={{ left: item.x, top: item.y, width: item.w, height: item.h }}
                   onMouseDown={(e) => handleMouseDown(e, item.id)}
                 >
-                  <img src={item.url} alt="" draggable={false} />
-                  {activeId === item.id && (
-                    <>
-                      <button className="item-delete" onClick={() => deleteItem(item.id)}>×</button>
-                      <div className="resize-handle" onMouseDown={(e) => handleResizeDown(e, item.id)} />
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+                   <img src={item.url} alt="" draggable={false} />
+                   {activeId === item.id && (
+                     <>
+                       <button className="item-delete" onClick={() => deleteItem(item.id)}>×</button>
+                       <div className="resize-handle" onMouseDown={(e) => handleResizeDown(e, item.id)} />
+                     </>
+                   )}
+                 </div>
+               )}
+             </div>
+           )}
+         </div>
+       </div>
+     </div>
+   );
+ }

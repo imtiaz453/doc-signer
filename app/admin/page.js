@@ -289,7 +289,7 @@ export default function AdminPage() {
       )}
 
       {tab === 'logs' && (
-        <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
+        <div style={{ background: '#fff', borderRadius: 12, overflow: 'auto', maxHeight: 'calc(100vh - 200px)', boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
           {logsLoading ? (
             <div style={{ padding: 32, textAlign: 'center' }}>
               <span className="spinner" />

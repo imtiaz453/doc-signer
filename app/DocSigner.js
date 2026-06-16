@@ -337,9 +337,10 @@ export default function DocSigner() {
       const out = await getSignedPdf();
       if (!out) return;
       const blob = new Blob([out], { type: 'application/pdf' });
+      const name = pdfFile?.name?.replace('.pdf', '_stamped.pdf') || 'document_stamped.pdf';
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = pdfFile?.name?.replace('.pdf', '-signed.pdf') || 'signed-document.pdf';
+      a.download = name;
       a.click();
       URL.revokeObjectURL(a.href);
     } catch (err) { alert('Export failed: ' + err.message); }
@@ -353,12 +354,13 @@ export default function DocSigner() {
       const out = await getSignedPdf();
       if (!out) return;
       const blob = new Blob([out], { type: 'application/pdf' });
-      if (navigator.canShare?.({ files: [new File([blob], 'signed.pdf', { type: 'application/pdf' })] })) {
-        await navigator.share({ files: [new File([blob], 'signed.pdf', { type: 'application/pdf' })], title: 'Signed Document' });
+      const shareName = pdfFile?.name?.replace('.pdf', '_stamped.pdf') || 'document_stamped.pdf';
+      if (navigator.canShare?.({ files: [new File([blob], shareName, { type: 'application/pdf' })] })) {
+        await navigator.share({ files: [new File([blob], shareName, { type: 'application/pdf' })], title: 'Stamped Document' });
       } else {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = pdfFile?.name?.replace('.pdf', '-signed.pdf') || 'signed-document.pdf';
+        a.download = shareName;
         a.click();
         URL.revokeObjectURL(a.href);
       }

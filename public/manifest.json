@@ -3,13 +3,20 @@
   "short_name": "DocSigner",
   "description": "Sign and stamp PDF documents with custom images",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f0f2f5",
   "theme_color": "#1a73e8",
   "icons": [
     {
       "src": "/logo.png",
-      "sizes": "any",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }

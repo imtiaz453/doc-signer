@@ -315,6 +315,7 @@ export default function AdminPage() {
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Stamp</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Document</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Page</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Action</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Time</th>
                   </tr>
                 </thead>
@@ -325,6 +326,14 @@ export default function AdminPage() {
                       <td style={{ padding: '8px 10px', color: '#555', fontSize: 13, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.stamp?.name || l.stampId}</td>
                       <td style={{ padding: '8px 10px', fontSize: 13, maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.documentName}</td>
                       <td style={{ padding: '8px 10px', fontSize: 13 }}>Page {l.pageNumber}</td>
+                      <td style={{ padding: '8px 10px' }}>
+                        <span style={{
+                          padding: '2px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                          background: l.action === 'share' ? '#e8f5e9' : '#e3f2fd',
+                          color: l.action === 'share' ? '#2e7d32' : '#1565c0',
+                          textTransform: 'capitalize',
+                        }}>{l.action || 'save'}</span>
+                      </td>
                       <td style={{ padding: '8px 10px', color: '#888', fontSize: 11 }}>{new Date(l.createdAt).toLocaleString()}</td>
                     </tr>
                   ))}

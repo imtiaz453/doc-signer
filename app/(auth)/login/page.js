@@ -32,7 +32,7 @@ function LoginForm() {
       <div className="auth-box">
         <div className="auth-company">Pioneer Generation for Commercial Investment</div>
         <div className="auth-divider" />
-        <div className="auth-icon"><img src="/api/logo" alt="DocSigner" style={{ width: 64, height: 64, objectFit: 'contain' }} /></div>
+        <div className="auth-icon"><img src="/api/logo" alt="DocSigner" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
         <h1>DocSigner</h1>
         <p className="auth-sub">Sign in with your account</p>
         <form onSubmit={handleSubmit}>
@@ -55,7 +55,7 @@ export default function LoginPage() {
         <div className="auth-box">
           <div className="auth-company">Pioneer Generation for Commercial Investment</div>
           <div className="auth-divider" />
-          <div className="auth-icon"><img src="/api/logo" alt="DocSigner" style={{ width: 64, height: 64, objectFit: 'contain' }} /></div>
+          <div className="auth-icon"><img src="/api/logo" alt="DocSigner" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
           <div style={{ textAlign: 'center', padding: '20px' }}><span className="spinner" /></div>
         </div>
       </div>

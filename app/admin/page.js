@@ -21,6 +21,7 @@ export default function AdminPage() {
   const [editForm, setEditForm] = useState({ name: '', email: '', password: '', role: 'SALESMAN' });
   const [editMsg, setEditMsg] = useState('');
   const [userMsg, setUserMsg] = useState('');
+  const [showCreateUser, setShowCreateUser] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.push('/login'); return; }
@@ -176,44 +177,19 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
-            <h2 style={{ fontSize: 16, marginBottom: 12, color: '#333' }}>Create New User</h2>
-            <form onSubmit={createUser} style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: '100%' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Full Name *</label>
-                <input placeholder="Full Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Email *</label>
-                <input placeholder="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Password *</label>
-                <input placeholder="Password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Role *</label>
-                <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: '#fff', width: '100%' }}>
-                  <option value="SALESMAN">Salesman</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-              </div>
-              <button type="submit"
-                style={{ padding: '12px', border: 'none', borderRadius: 8, background: '#1a73e8', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}>
-                Create User
-              </button>
-              {msg && <p style={{ fontSize: 13, color: msg.startsWith('Error') ? '#e53935' : '#2e7d32', marginTop: 8 }}>{msg}</p>}
-            </form>
-          </div>
+
         </div>
       )}
 
       {tab === 'users' && (
         <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e8eaed', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#333' }}>Users ({users.length})</span>
+            <button onClick={() => setShowCreateUser(true)}
+              style={{ padding: '6px 14px', border: 'none', borderRadius: 6, background: '#1a73e8', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+              + Create User
+            </button>
+          </div>
           {userMsg && <p style={{ padding: '8px 16px', margin: 0, fontSize: 13, color: userMsg.startsWith('Error') ? '#e53935' : '#2e7d32', background: userMsg.startsWith('Error') ? '#ffebee' : '#e8f5e9', borderBottom: '1px solid #e8eaed' }}>{userMsg}</p>}
           {users.length === 0 ? (
             <p style={{ padding: 20, color: '#888', textAlign: 'center' }}>No users found.</p>
@@ -389,6 +365,53 @@ export default function AdminPage() {
                 </button>
               </div>
               {editMsg && <p style={{ fontSize: 13, color: editMsg.startsWith('Error') ? '#e53935' : '#2e7d32', margin: 0 }}>{editMsg}</p>}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCreateUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+            <h3 style={{ fontSize: 16, margin: '0 0 16px', color: '#333' }}>Create New User</h3>
+            <form onSubmit={async (e) => {
+              await createUser(e);
+              if (!msg || !msg.startsWith('Error')) setShowCreateUser(false);
+            }} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Full Name *</label>
+                <input placeholder="Full Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Email *</label>
+                <input placeholder="Email" type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Password *</label>
+                <input placeholder="Password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Role *</label>
+                <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: '#fff', width: '100%' }}>
+                  <option value="SALESMAN">Salesman</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <button type="submit"
+                  style={{ flex: 1, padding: '12px', border: 'none', borderRadius: 8, background: '#1a73e8', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  Create User
+                </button>
+                <button type="button" onClick={() => { setShowCreateUser(false); setMsg(''); setForm({ name: '', email: '', password: '', role: 'SALESMAN' }); }}
+                  style={{ padding: '12px 20px', border: '2px solid #e0e0e0', borderRadius: 8, background: '#fff', color: '#666', fontSize: 14, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+              {msg && <p style={{ fontSize: 13, color: msg.startsWith('Error') ? '#e53935' : '#2e7d32', margin: 0 }}>{msg}</p>}
             </form>
           </div>
         </div>

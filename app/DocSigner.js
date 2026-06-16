@@ -192,14 +192,7 @@ export default function DocSigner() {
       stampId: preset.db ? preset.id : null,
     };
     setPlaced(prev => [...prev, item]);
-    if (preset.db && pdfFile) {
-      fetch('/api/stamp-logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stampId: preset.id, documentName: pdfFile.name, pageNumber }),
-      }).catch(() => {});
-    }
-  }, [pageDims, pageNumber, pdfFile]);
+  }, [pageDims, pageNumber]);
 
   // ==================== DRAG & RESIZE (Mouse + Touch) ====================
   const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;
@@ -324,8 +317,22 @@ export default function DocSigner() {
     return await pdfDoc.save();
   }, [pdfBuffer, placed, pageDims]);
 
+  const logPlacedStamps = useCallback(() => {
+    const docName = pdfFile?.name || 'Untitled';
+    for (const item of placed) {
+      if (item.stampId) {
+        fetch('/api/stamp-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stampId: item.stampId, documentName: docName, pageNumber: item.page }),
+        }).catch(() => {});
+      }
+    }
+  }, [placed, pdfFile]);
+
   const exportPdf = useCallback(async () => {
     setLoading(true);
+    logPlacedStamps();
     try {
       const out = await getSignedPdf();
       if (!out) return;
@@ -341,6 +348,7 @@ export default function DocSigner() {
 
   const sharePdf = useCallback(async () => {
     setLoading(true);
+    logPlacedStamps();
     try {
       const out = await getSignedPdf();
       if (!out) return;

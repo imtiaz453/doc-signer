@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [stamps, setStamps] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [settings, setSettings] = useState({ showSignatures: 'false' });
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'SALESMAN' });
   const [msg, setMsg] = useState('');
@@ -35,7 +36,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!isAdmin || tab !== 'logs') return;
-    fetch('/api/stamp-logs').then(r => r.json()).then(d => { if (Array.isArray(d)) setLogs(d); }).catch(() => {});
+    setLogsLoading(true);
+    fetch('/api/stamp-logs').then(r => r.json()).then(d => { if (Array.isArray(d)) setLogs(d); }).catch(() => {}).finally(() => setLogsLoading(false));
   }, [isAdmin, tab]);
 
   const createUser = async (e) => {
@@ -253,11 +255,13 @@ export default function AdminPage() {
                           style={{ padding: '4px 8px', border: '1px solid #1a73e8', borderRadius: 6, background: '#fff', color: '#1a73e8', cursor: 'pointer', fontSize: 11, marginRight: 4 }}>
                           Edit
                         </button>
-                        <button onClick={() => toggleDisable(u)}
-                          style={{ padding: '4px 8px', border: '1px solid', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 11,
-                            borderColor: u.disabled ? '#2e7d32' : '#e65100', color: u.disabled ? '#2e7d32' : '#e65100' }}>
-                          {u.disabled ? 'Enable' : 'Disable'}
-                        </button>
+                        {u.email !== 'rayyanalk@pgfci.com' && (
+                          <button onClick={() => toggleDisable(u)}
+                            style={{ padding: '4px 8px', border: '1px solid', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 11,
+                              borderColor: u.disabled ? '#2e7d32' : '#e65100', color: u.disabled ? '#2e7d32' : '#e65100' }}>
+                            {u.disabled ? 'Enable' : 'Disable'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -310,7 +314,11 @@ export default function AdminPage() {
 
       {tab === 'logs' && (
         <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
-          {logs.length === 0 ? (
+          {logsLoading ? (
+            <div style={{ padding: 32, textAlign: 'center' }}>
+              <span className="spinner" />
+            </div>
+          ) : logs.length === 0 ? (
             <p style={{ padding: 20, color: '#888', textAlign: 'center' }}>No stamp usage recorded yet. Logs appear here once users place stamps on documents.</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>

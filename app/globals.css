@@ -81,9 +81,10 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
 }
 
-.user-initials {
+.user-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -94,8 +95,68 @@ html, body {
   color: #fff;
   font-size: 12px;
   font-weight: 700;
-  cursor: default;
+  cursor: pointer;
   flex-shrink: 0;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.user-badge:hover {
+  border-color: #1557b0;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  min-width: 200px;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.user-dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.user-dropdown-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.user-dropdown-role {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-dropdown-items {
+  padding: 4px 0;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.1s;
+}
+
+.user-dropdown-item:hover {
+  background: #f5f5f5;
 }
 .btn-primary {
   padding: 8px 20px;
@@ -328,6 +389,7 @@ html, body {
   align-items: center;
   justify-content: center;
   min-height: 80px;
+  touch-action: manipulation;
 }
 
 .preset-item:hover {
@@ -723,7 +785,7 @@ html, body {
   .topbar-right { gap: 2px; }
   .topbar-right .btn-link { padding: 4px 6px; font-size: 11px; }
   .topbar-right .btn-secondary { padding: 4px 6px; font-size: 11px; }
-  .user-initials { width: 26px; height: 26px; font-size: 10px; }
+  .user-badge { width: 26px; height: 26px; font-size: 10px; border-width: 1px; }
 
   .main-area { padding: 8px; overflow: auto; }
   .pdf-container { overflow: auto; }

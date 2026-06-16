@@ -58,10 +58,12 @@ export default function DocSigner() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [renderWidth, setRenderWidth] = useState(800);
   const [settings, setSettings] = useState({ showSignatures: false });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const mainRef = useRef(null);
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   useEffect(() => { setLocalPresets(loadLocalPresets()); }, []);
 
@@ -364,6 +366,16 @@ export default function DocSigner() {
   };
 
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
     const handleKey = (e) => {
       if ((e.key === 'Delete' || e.key === 'Backspace') && activeId && !e.target.closest('input,textarea'))
         deleteItem(activeId);
@@ -395,14 +407,26 @@ export default function DocSigner() {
           <button disabled={!pdfFile || pageNumber >= numPages} onClick={() => setPageNumber(p => p + 1)}>▶</button>
         </div>
 
-        <div className="topbar-right">
+        <div className="topbar-right" ref={userMenuRef}>
           {session && (
-            <span className="user-initials" title={session.user.name}>
-              {getNameInitials(session.user.name)}
-            </span>
+            <>
+              <button className="user-badge" onClick={() => setUserMenuOpen(o => !o)} title={session.user.name}>
+                {getNameInitials(session.user.name)}
+              </button>
+              {userMenuOpen && (
+                <div className="user-dropdown">
+                  <div className="user-dropdown-header">
+                    <div className="user-dropdown-name">{session.user.name}</div>
+                    <div className="user-dropdown-role">{isAdmin ? 'Admin' : 'Salesman'}</div>
+                  </div>
+                  <div className="user-dropdown-items">
+                    {isAdmin && <a href="/admin" className="user-dropdown-item" onClick={() => setUserMenuOpen(false)}>⚙️ Settings</a>}
+                    <button className="user-dropdown-item" onClick={() => { setUserMenuOpen(false); signOut(); }}>🚪 Logout</button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-          {isAdmin && <a href="/admin" className="btn-link">⚙️</a>}
-          <button className="btn-secondary" onClick={() => signOut()}>🚪</button>
         </div>
       </div>
 

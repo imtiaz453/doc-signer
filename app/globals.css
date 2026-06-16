@@ -649,9 +649,9 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
   margin: 0 auto 20px;
   box-shadow: 0 8px 24px rgba(26,115,232,0.3);
+  overflow: hidden;
 }
 
 .auth-box h1 {

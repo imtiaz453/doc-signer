@@ -234,7 +234,8 @@ export default function AdminPage() {
                         {u.email !== 'rayyanalk@pgfci.com' && (
                           <button onClick={() => toggleDisable(u)}
                             style={{ padding: '4px 8px', border: '1px solid', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 11,
-                              borderColor: u.disabled ? '#2e7d32' : '#e65100', color: u.disabled ? '#2e7d32' : '#e65100' }}>
+                              borderColor: u.disabled ? '#2e7d32' : '#e65100', color: u.disabled ? '#2e7d32' : '#e65100',
+                              opacity: u.disabled ? 0.5 : 1 }}>
                             {u.disabled ? 'Enable' : 'Disable'}
                           </button>
                         )}

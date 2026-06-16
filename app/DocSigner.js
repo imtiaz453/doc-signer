@@ -463,9 +463,6 @@ export default function DocSigner() {
               {displayPresets.map(p => (
                 <div key={p.id} className="preset-item" onClick={() => addItem(p)}>
                   <img src={p.url} alt={p.name} />
-                  {(!p.db || isAdmin) && (
-                    <button className="preset-delete" onClick={(e) => { e.stopPropagation(); deletePreset(p.id, !!p.db); }}>×</button>
-                  )}
                 </div>
               ))}
               {(tab !== 'stamp' || isAdmin) && (

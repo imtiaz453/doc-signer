@@ -317,14 +317,14 @@ export default function DocSigner() {
     return await pdfDoc.save();
   }, [pdfBuffer, placed, pageDims]);
 
-  const logPlacedStamps = useCallback(() => {
+  const logPlacedStamps = useCallback((action = 'save') => {
     const docName = pdfFile?.name || 'Untitled';
     for (const item of placed) {
       if (item.stampId) {
         fetch('/api/stamp-logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stampId: item.stampId, documentName: docName, pageNumber: item.page }),
+          body: JSON.stringify({ stampId: item.stampId, documentName: docName, pageNumber: item.page, action }),
         }).catch(() => {});
       }
     }
@@ -332,7 +332,7 @@ export default function DocSigner() {
 
   const exportPdf = useCallback(async () => {
     setLoading(true);
-    logPlacedStamps();
+    logPlacedStamps('save');
     try {
       const out = await getSignedPdf();
       if (!out) return;
@@ -349,7 +349,7 @@ export default function DocSigner() {
 
   const sharePdf = useCallback(async () => {
     setLoading(true);
-    logPlacedStamps();
+    logPlacedStamps('share');
     try {
       const out = await getSignedPdf();
       if (!out) return;

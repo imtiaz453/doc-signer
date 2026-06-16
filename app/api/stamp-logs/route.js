@@ -22,9 +22,9 @@ export async function POST(req) {
   const session = await auth();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const { stampId, documentName, pageNumber } = await req.json();
+    const { stampId, documentName, pageNumber, action } = await req.json();
     const log = await prisma.stampLog.create({
-      data: { userId: session.user.id, stampId, documentName: documentName || 'Untitled', pageNumber: pageNumber || 1 },
+      data: { userId: session.user.id, stampId, documentName: documentName || 'Untitled', pageNumber: pageNumber || 1, action: action || 'save' },
     });
     return NextResponse.json(log, { status: 201 });
   } catch (err) {

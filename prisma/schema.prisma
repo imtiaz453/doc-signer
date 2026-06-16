@@ -39,6 +39,7 @@ model StampLog {
   stamp        Stamp    @relation(fields: [stampId], references: [id])
   documentName String
   pageNumber   Int      @default(1)
+  action       String   @default("save")
   createdAt    DateTime @default(now())
 }
 

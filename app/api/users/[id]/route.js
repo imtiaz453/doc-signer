@@ -25,6 +25,12 @@ export async function PUT(req, { params }) {
       }
     }
 
+    if (existing.email === 'rayyanalk@pgfci.com') {
+      if (name !== undefined || email !== undefined || role !== undefined) {
+        return NextResponse.json({ error: 'Cannot edit name, email, or role of the super admin' }, { status: 403 });
+      }
+    }
+
     const data = {};
     if (name !== undefined) data.name = name;
     if (email !== undefined) data.email = email;

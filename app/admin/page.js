@@ -75,6 +75,8 @@ export default function AdminPage() {
     if (data) setSettings(data);
   };
 
+  const isSuperAdmin = (user) => user.email === 'rayyanalk@pgfci.com';
+
   const openEdit = (user) => {
     setEditingUser(user);
     setEditForm({ name: user.name, email: user.email, password: '', role: user.role });
@@ -91,10 +93,17 @@ export default function AdminPage() {
     e.preventDefault();
     setEditMsg('');
     try {
+      const body = {};
+      if (!isSuperAdmin(editingUser)) {
+        body.name = editForm.name;
+        body.email = editForm.email;
+        body.role = editForm.role;
+      }
+      if (editForm.password) body.password = editForm.password;
       const res = await fetch(`/api/users/${editingUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm.password ? editForm : { name: editForm.name, email: editForm.email, role: editForm.role }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) { setEditMsg('Error: ' + data.error); return; }
@@ -332,15 +341,22 @@ export default function AdminPage() {
             <h3 style={{ fontSize: 16, margin: '0 0 4px', color: '#333' }}>Edit User</h3>
             <p style={{ fontSize: 12, color: '#888', margin: '0 0 16px' }}>{editingUser.email}</p>
             <form onSubmit={updateUser} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {isSuperAdmin(editingUser) && (
+                <p style={{ fontSize: 12, color: '#e65100', background: '#fff3e0', padding: '8px 12px', borderRadius: 6, margin: 0 }}>
+                  Name, email, and role cannot be changed for the super admin.
+                </p>
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Name</label>
                 <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+                  disabled={isSuperAdmin(editingUser)}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: isSuperAdmin(editingUser) ? '#f5f5f5' : '#fff' }} required />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Email</label>
                 <input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+                  disabled={isSuperAdmin(editingUser)}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: isSuperAdmin(editingUser) ? '#f5f5f5' : '#fff' }} required />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>New Password (leave blank to keep current)</label>
@@ -350,7 +366,8 @@ export default function AdminPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Role</label>
                 <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
-                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: '#fff', width: '100%' }}>
+                  disabled={isSuperAdmin(editingUser)}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: isSuperAdmin(editingUser) ? '#f5f5f5' : '#fff', width: '100%' }}>
                   <option value="SALESMAN">Salesman</option>
                   <option value="ADMIN">Admin</option>
                 </select>

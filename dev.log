@@ -1,0 +1,11 @@
+
+> doc-signer@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.95.208.38:3000
+- Environments: .env.local, .env
+✓ Ready in 762ms
+
+ GET /login 200 in 3.3s (next.js: 2.8s, application-code: 426ms)

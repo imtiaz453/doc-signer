@@ -4,21 +4,34 @@ import { useEffect, useState } from 'react';
 
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [showPrompt, setShowPrompt] = useState(true);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches;
+    setIsStandalone(isStandaloneMode);
+
+    if (isStandaloneMode) {
+      setShowPrompt(false);
+      return;
+    }
+
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setIsVisible(true);
+      setShowPrompt(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
     window.addEventListener('appinstalled', () => {
-      setIsVisible(false);
+      setShowPrompt(false);
       setDeferredPrompt(null);
     });
+
+    setTimeout(() => {
+      setShowPrompt(true);
+    }, 3000);
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
@@ -28,12 +41,13 @@ export default function InstallPrompt() {
     deferredPrompt.prompt();
     const result = await deferredPrompt.userChoice;
     if (result.outcome === 'accepted') {
-      setIsVisible(false);
+      setShowPrompt(false);
     }
     setDeferredPrompt(null);
   };
 
-  if (!isVisible) return null;
+  if (isStandalone) return null;
+  if (!showPrompt) return null;
 
   return (
     <div style={{
@@ -65,10 +79,10 @@ export default function InstallPrompt() {
             marginRight: 8,
           }}
         >
-          Install
+          {deferredPrompt ? 'Install' : 'Open in Chrome/Edge'}
         </button>
         <button
-          onClick={() => setIsVisible(false)}
+          onClick={() => setShowPrompt(false)}
           style={{
             background: 'transparent',
             color: '#fff',

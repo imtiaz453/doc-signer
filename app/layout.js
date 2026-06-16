@@ -21,15 +21,13 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  themeColor: '#1a73e8',
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        <meta name="theme-color" content="#1a73e8" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <link rel="apple-touch-icon" href="/logo.png" />
-      </head>
       <body>
         <ServiceWorkerRegister />
         <InstallPrompt />

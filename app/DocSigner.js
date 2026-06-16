@@ -421,7 +421,7 @@ export default function DocSigner() {
                   </div>
                   <div className="user-dropdown-items">
                     {isAdmin && <a href="/admin" className="user-dropdown-item" onClick={() => setUserMenuOpen(false)}>⚙️ Settings</a>}
-                    <button className="user-dropdown-item" onClick={() => { setUserMenuOpen(false); signOut(); }}>🚪 Logout</button>
+                    <button className="user-dropdown-item" onClick={() => { setUserMenuOpen(false); signOut(); }}>🚶 Logout</button>
                   </div>
                 </div>
               )}

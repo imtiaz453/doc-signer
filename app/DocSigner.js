@@ -57,7 +57,7 @@ export default function DocSigner() {
   const [uploading, setUploading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [renderWidth, setRenderWidth] = useState(800);
-  const [settings, setSettings] = useState({ showSignatures: true });
+  const [settings, setSettings] = useState({ showSignatures: false });
 
   const mainRef = useRef(null);
   const dragRef = useRef(null);

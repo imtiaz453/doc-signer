@@ -358,6 +358,11 @@ export default function DocSigner() {
     setLoading(false);
   }, [getSignedPdf, pdfFile]);
 
+  const getNameInitials = (name) => {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).filter(Boolean).join('').toUpperCase().slice(0, 2);
+  };
+
   useEffect(() => {
     const handleKey = (e) => {
       if ((e.key === 'Delete' || e.key === 'Backspace') && activeId && !e.target.closest('input,textarea'))
@@ -392,12 +397,12 @@ export default function DocSigner() {
 
         <div className="topbar-right">
           {session && (
-            <span style={{ fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>
-              👤 {session.user.name} ({isAdmin ? 'Admin' : 'Salesman'})
+            <span className="user-initials" title={session.user.name}>
+              {getNameInitials(session.user.name)}
             </span>
           )}
-          {isAdmin && <a href="/admin" className="btn-link">⚙️ Admin</a>}
-          <button className="btn-secondary" onClick={() => signOut()}>🚪 Logout</button>
+          {isAdmin && <a href="/admin" className="btn-link">⚙️</a>}
+          <button className="btn-secondary" onClick={() => signOut()}>🚪</button>
         </div>
       </div>
 
@@ -416,6 +421,12 @@ export default function DocSigner() {
           </div>
 
           <div className="sidebar-content">
+            {session && (
+              <div className="sidebar-user-info">
+                <div className="sidebar-user-name">{session.user.name}</div>
+                <div className="sidebar-user-role">{isAdmin ? 'Admin' : 'Salesman'}</div>
+              </div>
+            )}
             <div className="presets-grid">
               {displayPresets.map(p => (
                 <div key={p.id} className="preset-item" onClick={() => addItem(p)}>

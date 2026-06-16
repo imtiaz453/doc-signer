@@ -8,7 +8,7 @@ export async function GET() {
   if (!session || session.user.role !== 'ADMIN') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, role: true, createdAt: true } });
+  const users = await prisma.user.findMany({ select: { id: true, name: true, email: true, role: true, disabled: true, createdAt: true } });
   return NextResponse.json(users);
 }
 

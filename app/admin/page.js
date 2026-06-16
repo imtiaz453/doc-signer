@@ -12,10 +12,14 @@ export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [stamps, setStamps] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [settings, setSettings] = useState({ showSignatures: 'true' });
+  const [settings, setSettings] = useState({ showSignatures: 'false' });
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'SALESMAN' });
   const [msg, setMsg] = useState('');
   const [tab, setTab] = useState('settings');
+  const [editingUser, setEditingUser] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', password: '', role: 'SALESMAN' });
+  const [editMsg, setEditMsg] = useState('');
+  const [userMsg, setUserMsg] = useState('');
 
   useEffect(() => {
     if (status === 'unauthenticated') { router.push('/login'); return; }
@@ -68,14 +72,61 @@ export default function AdminPage() {
     if (data) setSettings(data);
   };
 
+  const openEdit = (user) => {
+    setEditingUser(user);
+    setEditForm({ name: user.name, email: user.email, password: '', role: user.role });
+    setEditMsg('');
+  };
+
+  const closeEdit = () => {
+    setEditingUser(null);
+    setEditForm({ name: '', email: '', password: '', role: 'SALESMAN' });
+    setEditMsg('');
+  };
+
+  const updateUser = async (e) => {
+    e.preventDefault();
+    setEditMsg('');
+    try {
+      const res = await fetch(`/api/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm.password ? editForm : { name: editForm.name, email: editForm.email, role: editForm.role }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setEditMsg('Error: ' + data.error); return; }
+      setEditMsg(editForm.password ? 'User updated' : 'User updated (password unchanged)');
+      setUsers(prev => prev.map(u => u.id === data.id ? { ...u, name: data.name, email: data.email, role: data.role, disabled: data.disabled } : u));
+      setEditingUser({ ...editingUser, ...data });
+    } catch (err) { setEditMsg('Error: ' + err.message); }
+  };
+
+  const toggleDisable = async (user) => {
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ disabled: !user.disabled }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setUserMsg('Error: ' + data.error); return; }
+      setUsers(prev => prev.map(u => u.id === data.id ? { ...u, disabled: data.disabled } : u));
+      setUserMsg(user.disabled ? 'User enabled' : 'User disabled');
+    } catch (err) { setUserMsg('Error: ' + err.message); }
+    setTimeout(() => setUserMsg(''), 3000);
+  };
+
   if (status !== 'authenticated' || !isAdmin) return null;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '100%', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ padding: '20px', maxWidth: 'min(100%, 800px)', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <h1 style={{ fontSize: 20, color: '#1a1a2e' }}>Admin Dashboard</h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ fontSize: 12, color: '#666', textAlign: 'right', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{session.user.name}</span>
+          <span title={session.user.name}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: '50%', background: '#1a73e8', color: '#fff', fontSize: 11, fontWeight: 700 }}>
+            {session.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+          </span>
           <a href="/" style={{ fontSize: 12, color: '#1a73e8' }}>← Back</a>
         </div>
       </div>
@@ -161,6 +212,7 @@ export default function AdminPage() {
 
       {tab === 'users' && (
         <div style={{ background: '#fff', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
+          {userMsg && <p style={{ padding: '8px 16px', margin: 0, fontSize: 13, color: userMsg.startsWith('Error') ? '#e53935' : '#2e7d32', background: userMsg.startsWith('Error') ? '#ffebee' : '#e8f5e9', borderBottom: '1px solid #e8eaed' }}>{userMsg}</p>}
           {users.length === 0 ? (
             <p style={{ padding: 20, color: '#888', textAlign: 'center' }}>No users found.</p>
           ) : (
@@ -171,12 +223,14 @@ export default function AdminPage() {
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Name</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Email</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Role</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Status</th>
                     <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600, whiteSpace: 'nowrap' }}>Created</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', color: '#666', fontWeight: 600 }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map(u => (
-                    <tr key={u.id} style={{ borderTop: '1px solid #e8eaed' }}>
+                    <tr key={u.id} style={{ borderTop: '1px solid #e8eaed', opacity: u.disabled ? 0.5 : 1 }}>
                       <td style={{ padding: '8px 10px', fontSize: 13 }}>{u.name}</td>
                       <td style={{ padding: '8px 10px', color: '#555', fontSize: 13 }}>{u.email}</td>
                       <td style={{ padding: '8px 10px' }}>
@@ -186,7 +240,25 @@ export default function AdminPage() {
                           color: u.role === 'ADMIN' ? '#1565c0' : '#7b1fa2',
                         }}>{u.role}</span>
                       </td>
+                      <td style={{ padding: '8px 10px' }}>
+                        {u.disabled ? (
+                          <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#ffebee', color: '#c62828' }}>Disabled</span>
+                        ) : (
+                          <span style={{ padding: '2px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#e8f5e9', color: '#2e7d32' }}>Active</span>
+                        )}
+                      </td>
                       <td style={{ padding: '8px 10px', color: '#888', fontSize: 11 }}>{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
+                        <button onClick={() => openEdit(u)}
+                          style={{ padding: '4px 8px', border: '1px solid #1a73e8', borderRadius: 6, background: '#fff', color: '#1a73e8', cursor: 'pointer', fontSize: 11, marginRight: 4 }}>
+                          Edit
+                        </button>
+                        <button onClick={() => toggleDisable(u)}
+                          style={{ padding: '4px 8px', border: '1px solid', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 11,
+                            borderColor: u.disabled ? '#2e7d32' : '#e65100', color: u.disabled ? '#2e7d32' : '#e65100' }}>
+                          {u.disabled ? 'Enable' : 'Disable'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -266,6 +338,51 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+        </div>
+      )}
+
+      {editingUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 16 }}>
+          <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: '100%', maxWidth: 420, boxShadow: '0 8px 32px rgba(0,0,0,0.12)' }}>
+            <h3 style={{ fontSize: 16, margin: '0 0 4px', color: '#333' }}>Edit User</h3>
+            <p style={{ fontSize: 12, color: '#888', margin: '0 0 16px' }}>{editingUser.email}</p>
+            <form onSubmit={updateUser} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Name</label>
+                <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Email</label>
+                <input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} required />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>New Password (leave blank to keep current)</label>
+                <input type="password" value={editForm.password} onChange={e => setEditForm(f => ({ ...f, password: e.target.value }))} placeholder="Leave blank to keep current"
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14 }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 12, color: '#666', fontWeight: 500 }}>Role</label>
+                <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
+                  style={{ padding: '10px 14px', border: '2px solid #e8e8ec', borderRadius: 8, fontSize: 14, background: '#fff', width: '100%' }}>
+                  <option value="SALESMAN">Salesman</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <button type="submit"
+                  style={{ flex: 1, padding: '12px', border: 'none', borderRadius: 8, background: '#1a73e8', color: '#fff', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  Save Changes
+                </button>
+                <button type="button" onClick={closeEdit}
+                  style={{ padding: '12px 20px', border: '2px solid #e0e0e0', borderRadius: 8, background: '#fff', color: '#666', fontSize: 14, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+              </div>
+              {editMsg && <p style={{ fontSize: 13, color: editMsg.startsWith('Error') ? '#e53935' : '#2e7d32', margin: 0 }}>{editMsg}</p>}
+            </form>
+          </div>
         </div>
       )}
     </div>

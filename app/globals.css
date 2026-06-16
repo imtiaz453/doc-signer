@@ -80,7 +80,22 @@ html, body {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+}
+
+.user-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: default;
+  flex-shrink: 0;
 }
 .btn-primary {
   padding: 8px 20px;
@@ -188,6 +203,27 @@ html, body {
 }
 
 .sidebar-backdrop { display: none; }
+
+.sidebar-user-info {
+  padding: 12px;
+  border-bottom: 1px solid #e8eaed;
+  margin-bottom: 4px;
+}
+
+.sidebar-user-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+  line-height: 1.3;
+}
+
+.sidebar-user-role {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
 .sidebar-tabs {
   display: flex;
@@ -684,9 +720,10 @@ html, body {
   .topbar-center button { padding: 3px 6px; font-size: 11px; }
   .topbar-center span { font-size: 10px; min-width: auto; }
 
-  .topbar-right { gap: 3px; }
-  .topbar-right .btn-primary,
-  .topbar-right .btn-secondary { padding: 4px 8px; font-size: 10px; }
+  .topbar-right { gap: 2px; }
+  .topbar-right .btn-link { padding: 4px 6px; font-size: 11px; }
+  .topbar-right .btn-secondary { padding: 4px 6px; font-size: 11px; }
+  .user-initials { width: 26px; height: 26px; font-size: 10px; }
 
   .main-area { padding: 8px; overflow: auto; }
   .pdf-container { overflow: auto; }
@@ -710,6 +747,16 @@ html, body {
     top: 0;
     background: #fff;
     z-index: 5;
+  }
+
+  .sidebar-user-info {
+    padding: 8px 10px;
+  }
+  .sidebar-user-name {
+    font-size: 13px;
+  }
+  .sidebar-user-role {
+    font-size: 10px;
   }
 
   .sidebar-actions {

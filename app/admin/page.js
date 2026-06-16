@@ -131,7 +131,7 @@ export default function AdminPage() {
   if (status !== 'authenticated' || !isAdmin) return null;
 
   return (
-    <div style={{ padding: '20px', maxWidth: 'min(100%, 800px)', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ padding: '20px', maxWidth: 'min(100%, 1300px)', margin: '0 auto', fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
         <h1 style={{ fontSize: 20, color: '#1a1a2e' }}>Admin Dashboard</h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

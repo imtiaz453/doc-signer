@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -31,7 +32,7 @@ function LoginForm() {
       <div className="auth-box">
         <div className="auth-company">Pioneer Generation for Commercial Investment</div>
         <div className="auth-divider" />
-        <div className="auth-icon"><img src="/logo.png" alt="DocSigner" style={{ width: 64, height: 64, objectFit: 'contain' }} /></div>
+        <div className="auth-icon"><Image src="/logo.png" alt="DocSigner" width={64} height={64} style={{ objectFit: 'contain' }} unoptimized /></div>
         <h1>DocSigner</h1>
         <p className="auth-sub">Sign in with your account</p>
         <form onSubmit={handleSubmit}>
@@ -54,6 +55,7 @@ export default function LoginPage() {
         <div className="auth-box">
           <div className="auth-company">Pioneer Generation for Commercial Investment</div>
           <div className="auth-divider" />
+          <div className="auth-icon"><Image src="/logo.png" alt="DocSigner" width={64} height={64} style={{ objectFit: 'contain' }} unoptimized /></div>
           <div style={{ textAlign: 'center', padding: '20px' }}><span className="spinner" /></div>
         </div>
       </div>

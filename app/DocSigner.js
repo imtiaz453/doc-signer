@@ -52,6 +52,7 @@ export default function DocSigner() {
   const [placed, setPlaced] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [pageDims, setPageDims] = useState({ w: 0, h: 0 });
+  const [pdfPageSize, setPdfPageSize] = useState({ pw: 0, ph: 0 });
   const [tab, setTab] = useState('sign');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -93,6 +94,25 @@ export default function DocSigner() {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!pdfBuffer) return;
+    (async () => {
+      try {
+        const pdfDoc = await PDFDocument.load(pdfBuffer);
+        const page = pdfDoc.getPage(0);
+        const { width, height } = page.getSize();
+        setPdfPageSize({ pw: width, ph: height });
+      } catch {}
+    })();
+  }, [pdfBuffer]);
+
+  const pxToMm = useCallback((px, axis) => {
+    const renderDim = axis === 'w' ? pageDims.w : pageDims.h;
+    const pdfDim = axis === 'w' ? pdfPageSize.pw : pdfPageSize.ph;
+    if (!renderDim || !pdfDim) return '0';
+    return ((px * (pdfDim / renderDim) * 25.4) / 72).toFixed(1);
+  }, [pageDims, pdfPageSize]);
 
   const allPresets = [
     ...localPresets,
@@ -272,19 +292,22 @@ export default function DocSigner() {
     setActiveId(null);
   }, []);
 
-  const renderEditControls = useCallback((id) => {
-    if (activeId !== id) return null;
+  const renderEditControls = useCallback((item) => {
+    if (activeId !== item.id) return null;
     return (
       <>
-        <button className="item-delete" onClick={() => deleteItem(id)}>×</button>
+        <div className="size-label">
+          {pxToMm(item.w, 'w')} × {pxToMm(item.h, 'h')} mm
+        </div>
+        <button className="item-delete" onClick={() => deleteItem(item.id)}>×</button>
         <div
           className="resize-handle"
-          onMouseDown={(e) => handleResizeStart(e, id)}
-          onTouchStart={(e) => handleResizeStart(e, id)}
+          onMouseDown={(e) => handleResizeStart(e, item.id)}
+          onTouchStart={(e) => handleResizeStart(e, item.id)}
         />
       </>
     );
-  }, [activeId, deleteItem, handleResizeStart]);
+  }, [activeId, deleteItem, handleResizeStart, pxToMm]);
 
   const getSignedPdf = useCallback(async () => {
     if (!pdfBuffer) return null;
@@ -522,7 +545,7 @@ export default function DocSigner() {
                   onTouchStart={(e) => handleDragStart(e, item.id)}
                 >
                   <img src={item.url} alt="" draggable={false} />
-                  {renderEditControls(item.id)}
+                  {renderEditControls(item)}
                 </div>
               ))}
             </div>

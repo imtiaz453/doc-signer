@@ -114,6 +114,14 @@ export default function DocSigner() {
     return ((px * (pdfDim / renderDim) * 25.4) / 72).toFixed(1);
   }, [pageDims, pdfPageSize]);
 
+  const mmToPx = useCallback((mm, axis) => {
+    const renderDim = axis === 'w' ? pageDims.w : pageDims.h;
+    const pdfDim = axis === 'w' ? pdfPageSize.pw : pdfPageSize.ph;
+    if (!renderDim || !pdfDim) return 0;
+    const points = mm * 72 / 25.4;
+    return points * (renderDim / pdfDim);
+  }, [pageDims, pdfPageSize]);
+
   const allPresets = [
     ...localPresets,
     ...dbStamps.map(s => ({
@@ -200,8 +208,13 @@ export default function DocSigner() {
 
   const addItem = useCallback((preset) => {
     if (!pageDims.w) return;
-    const w = preset.type === 'stamp' ? 140 : 180;
-    const h = preset.type === 'stamp' ? 140 : 50;
+    let w, h;
+    if (preset.type === 'stamp') {
+      w = Math.round(mmToPx(25, 'w'));
+      h = Math.round(mmToPx(25, 'h'));
+    } else {
+      w = 180; h = 50;
+    }
     const item = {
       id: uid(),
       presetId: preset.id,
@@ -212,7 +225,7 @@ export default function DocSigner() {
       stampId: preset.db ? preset.id : null,
     };
     setPlaced(prev => [...prev, item]);
-  }, [pageDims, pageNumber]);
+  }, [pageDims, pageNumber, mmToPx]);
 
   // ==================== DRAG & RESIZE (Mouse + Touch) ====================
   const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;

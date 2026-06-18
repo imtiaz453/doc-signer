@@ -60,6 +60,7 @@ export default function DocSigner() {
   const [renderWidth, setRenderWidth] = useState(800);
   const [settings, setSettings] = useState({ showSignatures: false });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const mainRef = useRef(null);
   const dragRef = useRef(null);
@@ -206,6 +207,11 @@ export default function DocSigner() {
     }
   }, [localPresets, persistLocalPresets, isAdmin]);
 
+  const showToast = useCallback((msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 1500);
+  }, []);
+
   const addItem = useCallback((preset) => {
     if (!pageDims.w) return;
     let w, h;
@@ -225,7 +231,8 @@ export default function DocSigner() {
       stampId: preset.db ? preset.id : null,
     };
     setPlaced(prev => [...prev, item]);
-  }, [pageDims, pageNumber, mmToPx]);
+    showToast(preset.name);
+  }, [pageDims, pageNumber, mmToPx, showToast]);
 
   // ==================== DRAG & RESIZE (Mouse + Touch) ====================
   const getClientX = (e) => e.touches ? e.touches[0].clientX : e.clientX;
@@ -433,6 +440,7 @@ export default function DocSigner() {
   return (
     <div className="app">
       {loading && <div className="loading-overlay">Processing PDF...</div>}
+      {toast && <div className="toast">{toast}</div>}
 
       {/* Topbar */}
       <div className="topbar">

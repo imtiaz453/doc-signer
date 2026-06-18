@@ -231,7 +231,7 @@ export default function DocSigner() {
       stampId: preset.db ? preset.id : null,
     };
     setPlaced(prev => [...prev, item]);
-    showToast(preset.name);
+    showToast('Stamp added to pdf');
   }, [pageDims, pageNumber, mmToPx, showToast]);
 
   // ==================== DRAG & RESIZE (Mouse + Touch) ====================

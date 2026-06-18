@@ -216,8 +216,8 @@ export default function DocSigner() {
     if (!pageDims.w) return;
     let w, h;
     if (preset.type === 'stamp') {
-      w = Math.round(mmToPx(25, 'w'));
-      h = Math.round(mmToPx(25, 'h'));
+      w = Math.round(mmToPx(27.5, 'w'));
+      h = Math.round(mmToPx(27.5, 'h'));
     } else {
       w = 180; h = 50;
     }

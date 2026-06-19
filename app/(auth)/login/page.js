@@ -33,7 +33,6 @@ function LoginForm() {
         <div className="auth-company">Pioneer Generation for Commercial Investment</div>
         <div className="auth-divider" />
         <div className="auth-icon" style={{ backgroundImage: 'url(/api/logo)' }} aria-label="DocSigner" />
-        <h1>DocSigner</h1>
         <p className="auth-sub">Sign in with your account</p>
         <form onSubmit={handleSubmit}>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" autoFocus required />

@@ -51,16 +51,18 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="auth-gate">
-        <div className="auth-box">
-          <img src="/PGFCI-Logo-Final.png" alt="PGFCI" className="auth-pgfci-logo" />
-          <div className="auth-company">Pioneer Generation for Commercial Investment</div>
-          <div className="auth-divider" />
+      <Suspense fallback={
+        <div className="auth-gate">
+          <div className="auth-box">
+            <img src="/PGFCI-Logo-Final.png" alt="PGFCI" className="auth-pgfci-logo" />
+            <div className="auth-company">Pioneer Generation for Commercial Investment</div>
+            <div className="auth-divider" />
             <div style={{ textAlign: 'center', padding: '20px' }}><span className="spinner" /></div>
             <div className="auth-copyright">Copyright 2026 PGFCI. All rights reserved.</div>
           </div>
         </div>
+      }>
+        <LoginForm />
       </Suspense>
   );
 }

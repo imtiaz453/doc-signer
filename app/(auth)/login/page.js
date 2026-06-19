@@ -43,7 +43,7 @@ function LoginForm() {
             {loading ? <span className="spinner" style={{ verticalAlign: 'middle' }} /> : 'Sign In'}
           </button>
           </form>
-          <img src="/PGFCI-Logo-Final.png?v=1" alt="PGFCI" className="auth-pgfci-logo" />
+          <img src="/api/pgfci-logo" alt="PGFCI" className="auth-pgfci-logo" />
           <div className="auth-copyright">Copyright 2026 PGFCI. All rights reserved.</div>
         </div>
       </div>
@@ -58,7 +58,7 @@ export default function LoginPage() {
             <div className="auth-company">Pioneer Generation for Commercial Investment</div>
             <div className="auth-divider" />
             <div style={{ textAlign: 'center', padding: '20px' }}><span className="spinner" /></div>
-            <img src="/PGFCI-Logo-Final.png?v=1" alt="PGFCI" className="auth-pgfci-logo" />
+            <img src="/api/pgfci-logo" alt="PGFCI" className="auth-pgfci-logo" />
             <div className="auth-copyright">Copyright 2026 PGFCI. All rights reserved.</div>
           </div>
         </div>

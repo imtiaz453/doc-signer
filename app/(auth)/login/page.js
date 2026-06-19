@@ -32,7 +32,7 @@ function LoginForm() {
       <div className="auth-box">
         <div className="auth-company">Pioneer Generation for Commercial Investment</div>
         <div className="auth-divider" />
-        <div className="auth-icon"><img src="/api/logo" alt="DocSigner" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
+        <div className="auth-icon"><img src="/api/logo" alt="DocSigner" /></div>
         <h1>DocSigner</h1>
         <p className="auth-sub">Sign in with your account</p>
         <form onSubmit={handleSubmit}>

@@ -807,13 +807,14 @@ html, body {
 
   .sidebar {
     position: fixed;
-    top: 46px;
+    top: 0;
     left: 0;
     bottom: 0;
     z-index: 30;
     transform: translateX(-100%);
     width: 260px;
     transition: transform 0.25s ease;
+    padding-top: 44px;
     padding-bottom: 60px;
   }
   .sidebar.open { transform: translateX(0); }
@@ -821,13 +822,15 @@ html, body {
   .sidebar-backdrop {
     display: block;
     position: fixed;
-    inset: 0;
-    top: 46px;
+    top: 44px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 29;
     background: rgba(0,0,0,0.35);
   }
 
-  .topbar { padding: 4px 6px; gap: 2px; }
+  .topbar { padding: 4px 6px; gap: 2px; margin-top: 0; }
   .topbar-left { gap: 6px; }
   .topbar-left h1 { font-size: 13px; }
   .upload-label { font-size: 10px; padding: 4px 6px; gap: 2px; }

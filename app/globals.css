@@ -663,10 +663,11 @@ html, body {
 }
 
 .auth-pgfci-logo {
-  width: 200px;
+  width: 120px;
   height: auto;
   display: block;
-  margin: 0 auto 16px;
+  margin: 20px auto 8px;
+  opacity: 0.7;
 }
 
 .auth-company {

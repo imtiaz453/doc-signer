@@ -30,9 +30,9 @@ function LoginForm() {
   return (
     <div className="auth-gate">
       <div className="auth-box">
-        <img src="/PGFCI-Logo-Final.png" alt="PGFCI" className="auth-pgfci-logo" />
         <div className="auth-company">Pioneer Generation for Commercial Investment</div>
         <div className="auth-divider" />
+        <div className="auth-icon"><img src="/api/logo" alt="DocSigner" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
         <h1>DocSigner</h1>
         <p className="auth-sub">Sign in with your account</p>
         <form onSubmit={handleSubmit}>
@@ -43,6 +43,7 @@ function LoginForm() {
             {loading ? <span className="spinner" style={{ verticalAlign: 'middle' }} /> : 'Sign In'}
           </button>
           </form>
+          <img src="/PGFCI-Logo-Final.png?v=1" alt="PGFCI" className="auth-pgfci-logo" />
           <div className="auth-copyright">Copyright 2026 PGFCI. All rights reserved.</div>
         </div>
       </div>
@@ -54,10 +55,10 @@ export default function LoginPage() {
       <Suspense fallback={
         <div className="auth-gate">
           <div className="auth-box">
-            <img src="/PGFCI-Logo-Final.png" alt="PGFCI" className="auth-pgfci-logo" />
             <div className="auth-company">Pioneer Generation for Commercial Investment</div>
             <div className="auth-divider" />
             <div style={{ textAlign: 'center', padding: '20px' }}><span className="spinner" /></div>
+            <img src="/PGFCI-Logo-Final.png?v=1" alt="PGFCI" className="auth-pgfci-logo" />
             <div className="auth-copyright">Copyright 2026 PGFCI. All rights reserved.</div>
           </div>
         </div>

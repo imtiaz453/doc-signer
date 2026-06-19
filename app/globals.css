@@ -807,14 +807,13 @@ html, body {
 
   .sidebar {
     position: fixed;
-    top: 0;
+    top: 44px;
     left: 0;
     bottom: 0;
     z-index: 30;
     transform: translateX(-100%);
     width: 260px;
     transition: transform 0.25s ease;
-    padding-top: 44px;
     padding-bottom: 60px;
   }
   .sidebar.open { transform: translateX(0); }

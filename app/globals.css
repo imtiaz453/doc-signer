@@ -688,16 +688,16 @@ html, body {
 }
 
 .auth-icon {
-  width: 127px;
-  height: 127px;
-  border-radius: 24px;
+  width: 125px;
+  height: 128px;
+  border-radius: 20px;
   margin: 0 auto 24px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-color: #fff;
   box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  padding: 0;
+  padding: 2px;
   
 }
 
@@ -807,13 +807,14 @@ html, body {
 
   .sidebar {
     position: fixed;
-    top: 44px;
+    top: 0;
     left: 0;
     bottom: 0;
     z-index: 30;
     transform: translateX(-100%);
     width: 260px;
     transition: transform 0.25s ease;
+    padding-top: 66px;
     padding-bottom: 60px;
   }
   .sidebar.open { transform: translateX(0); }
@@ -821,10 +822,7 @@ html, body {
   .sidebar-backdrop {
     display: block;
     position: fixed;
-    top: 44px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     z-index: 29;
     background: rgba(0,0,0,0.35);
   }

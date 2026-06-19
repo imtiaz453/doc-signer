@@ -662,6 +662,13 @@ html, body {
   backdrop-filter: blur(10px);
 }
 
+.auth-pgfci-logo {
+  width: 200px;
+  height: auto;
+  display: block;
+  margin: 0 auto 16px;
+}
+
 .auth-company {
   font-size: 13px;
   font-weight: 700;
@@ -706,6 +713,13 @@ html, body {
   color: #888;
   margin-bottom: 28px;
   font-weight: 400;
+}
+
+.auth-copyright {
+  margin-top: 28px;
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
 }
 
 .auth-box form {
